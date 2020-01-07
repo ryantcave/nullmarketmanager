@@ -10,29 +10,6 @@ namespace NullMarketManager
     {
         static void Main(string[] args)
         {
-            /*
-            MarketOrder marketOrder1 = new MarketOrder();
-            MarketOrder marketOrder2 = new MarketOrder();
-            MarketOrder marketOrder3 = new MarketOrder();
-
-            marketOrder1.price = 10002.39;
-            marketOrder2.price = 10002.38;
-            marketOrder3.price = 10002.13;
-            marketOrder1.volume_remain = 7967;
-            marketOrder2.volume_remain = 87225;
-            marketOrder3.volume_remain = 30770;
-
-            marketOrder1.is_buy_order = true;
-            marketOrder2.is_buy_order = true;
-            marketOrder3.is_buy_order = true;
-
-            var testList = new List<MarketOrder>();
-            testList.Add(marketOrder1);
-            testList.Add(marketOrder2);
-            testList.Add(marketOrder3);
-            var test = MarketOrderManager.GetBestPriceMapping(testList, true);*/
-
-
             string authCode = AuthorizationManager.ReceiveAccess(new[] { "http://localhost/oauth-callback/" });
             
             RequestManager.AuthInfo authInfo = RequestManager.GetAccessToken(authCode);

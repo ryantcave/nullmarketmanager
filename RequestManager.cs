@@ -7,8 +7,8 @@ using System.Linq;
 
 static class Constants
 {
-    public const string ClientID = "e4c1b3cd8488434cb8fec58469bec263";
-    public const string SecretKey = "AtxvM2aGShOKbgoqrsMaNOVmvhUx0lCKJAB9ZZJg";
+    public const string ClientID = "Insert Your Client ID";
+    public const string SecretKey = "Insert Your Secret Key";
     public const long DQStructureID = 1030049082711;
     public const long TheForgeID = 10000002;
     public const long JitaStructureID = 60003760;
