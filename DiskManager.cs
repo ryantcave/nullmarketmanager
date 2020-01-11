@@ -8,7 +8,6 @@ namespace NullMarketManager
 {
     class DiskManager
     {
-
         public static void SerializeTypesToDisk(Dictionary<long, RequestManager.TypeInfo> typeInfo)
         {
             StringBuilder builder = new StringBuilder("[");
@@ -43,5 +42,23 @@ namespace NullMarketManager
 
         }
 
+        public static void SerializeAuthInfoToDisk(AccessManager.AuthInfo authInfo)
+        {
+            string jsonString = JsonConvert.SerializeObject(authInfo);
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json", jsonString);
+        }
+
+        public static bool DeserializeAuthInfoFromDisk(ref AccessManager.AuthInfo authInfo)
+        {
+            bool bSuccess = false;
+            if ( File.Exists(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json"))
+            {
+                var input = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json");
+                authInfo = JsonConvert.DeserializeObject<AccessManager.AuthInfo>(input);
+                bSuccess = true;
+            }
+
+            return bSuccess;
+        }
     }
 }

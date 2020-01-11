@@ -2,7 +2,7 @@
 
 ### What is this?
 Null Market Manager is a C# console application that consumes the EVE Online ESI. The application scrapes the EVE API for all market orders belonging to the user-specified stations for the purpose of finding profitable items for export from an origin location to a destination location and immediately resell.
-This is a personal project and designed for my own particular usecases.
+This is a personal project and designed for my own usecases.
 
 ### How does it work?
 - All market orders for an origin and destination location are pulled from the EVE api and are processed to find the "best" market orders for each unique item. In this case the best orders are those with the highest price for buy orders and the lowest price for sell orders.
@@ -14,3 +14,11 @@ This is a personal project and designed for my own particular usecases.
 ### How do I use it?
 If you are not a developer, you can't. The application is not currently designed for the endusers, as opening it up in this way would cut into my own profits!
 If you are a developer, you will need to register the application in the EVE Developers portal and allow it access to all user scopes. Once this is done, update your Client & Secret ID in the code, and update the Location IDs in the constants class to match your desired origin and destinations.
+
+### Will the market manager ever have <idea>?
+In a perfect world the manager would have a UI and other market features unrelated to export routes (e.g. notifications when buy orders are outbid). However, as it's not to my advantage to distribute the application, it remains in a state requiring it to be run in Visual Studio.
+
+If I ever stop using the application I may put the finishing touches on it for other players to benefit from it.
+
+### Is this still in development?
+If there are active commits from the last 30 days, most likely yes. Otherwise no.
