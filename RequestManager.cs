@@ -9,50 +9,12 @@ static class Constants
 {
     public const string ClientID = "Insert Your Client ID";
     public const string SecretKey = "Insert Your Secret Key";
-    public const long DQStructureID = 1030049082711;
-    public const long TheForgeID = 10000002;
-    public const long JitaStructureID = 60003760;
 }
-
 
 namespace NullMarketManager
 {
     class RequestManager
     {
-        public class AuthInfo
-        {
-            public string access_token { get; set; }
-            public int expires_in { get; set; }
-            public string refresh_token { get; set; }
-        }
-
-        public static AuthInfo GetAccessToken(string authCode)
-        {
-            var client = new RestClient("https://login.eveonline.com");
-            var request = new RestRequest("/oauth/token", Method.POST);
-
-            var body = new
-            {
-                grant_type = "authorization_code",
-                code = authCode
-            };
-
-            var encodeBytes = System.Text.Encoding.UTF8.GetBytes(Constants.ClientID + ":" + Constants.SecretKey);
-            string header = "Basic " + System.Convert.ToBase64String(encodeBytes);
-
-            string json_body = JsonConvert.SerializeObject(body);
-            request.AddHeader("Authorization", header);
-            request.AddParameter("application/json", json_body, ParameterType.RequestBody);
-            request.AddParameter("Content-Type", "application/json");
-            var response = client.Post(request);
-            var content = response.Content;
-            
-            AuthInfo authInfo = JsonConvert.DeserializeObject<AuthInfo>(content);
-
-            return authInfo;
-
-        }
-
         public class CharacterInfo
         {
             public string CharacterID { get; set; }
@@ -61,7 +23,7 @@ namespace NullMarketManager
 
         }
 
-        public static CharacterInfo GetCharacterInfo(AuthInfo authInfo)
+        public static CharacterInfo GetCharacterInfo(AccessManager.AuthInfo authInfo)
         {
             var client = new RestClient("https://login.eveonline.com");
             var request = new RestRequest("oauth/verify", Method.GET);
@@ -78,7 +40,7 @@ namespace NullMarketManager
         }
 
         // Only valid for player-owned stations, must use region endpoint for npc stations
-        public static List<MarketOrder> GetMarketOrdersByPlayerStation(AuthInfo authInfo, long structureID)
+        public static List<MarketOrder> GetMarketOrdersByPlayerStation(AccessManager.AuthInfo authInfo, long structureID)
         {
             List<MarketOrder> returnList = new List<MarketOrder>();
 
@@ -108,7 +70,7 @@ namespace NullMarketManager
         }
 
         // Must get all orders in the region for public stations, then filter out unwanted results.
-        public static List<MarketOrder> GetMarketOrdersByNPCStation(AuthInfo authInfo, long regionID, long structureID)
+        public static List<MarketOrder> GetMarketOrdersByNPCStation(AccessManager.AuthInfo authInfo, long structureID, long regionID, bool getBuyOrders)
         {
             List<MarketOrder> returnList = new List<MarketOrder>();
 
@@ -117,7 +79,16 @@ namespace NullMarketManager
             for (int i = 0; i < totalPages; i++)
             {
                 var client = new RestClient("https://esi.evetech.net");
-                var request = new RestRequest("/latest/markets/" + regionID + "/orders/?page=" + (i + 1) + "&order_type=buy");
+                RestRequest request;
+
+                if (getBuyOrders)
+                {
+                    request = new RestRequest("/latest/markets/" + regionID + "/orders/?page=" + (i + 1) + "&order_type=buy");
+                }
+                else
+                {
+                    request = new RestRequest("/latest/markets/" + regionID + "/orders/?page=" + (i + 1) + "&order_type=sell");
+                }
 
                 Console.WriteLine("Getting " + regionID + " Region Orders: Getting Page " + (i + 1));
 
@@ -160,7 +131,7 @@ namespace NullMarketManager
 
         }
 
-        public static TypeInfo GetTypeInfo(AuthInfo authInfo, long type_id)
+        public static TypeInfo GetTypeInfo(AccessManager.AuthInfo authInfo, long type_id)
         {
             var client = new RestClient("https://esi.evetech.net");
             var request = new RestRequest("/latest/universe/types/" + type_id);
