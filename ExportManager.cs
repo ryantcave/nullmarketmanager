@@ -166,12 +166,12 @@ namespace NullMarketManager
                 m_vCurrentResultIDs.Add(item.type_id);
                 if (m_vPreviousResultIDs.Contains(item.type_id))
                 {
-                    Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + (item.profit / 1000000) + "mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                    Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000,4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
                 }
                 else
                 {
                     string newHeader = "*NEW* " + header;
-                    Console.WriteLine(newHeader + m_dicItemDictionary[item.type_id].name + " - Profit: " + (item.profit / 1000000) + "mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                    Console.WriteLine(newHeader + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000,4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
                     m_vPreviousResultIDs.Add(item.type_id);
                     Console.Beep();
                 }
