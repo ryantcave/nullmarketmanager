@@ -100,8 +100,9 @@ namespace NullMarketManager
 
                 if ( response.IsSuccessful == false)
                 {
-                    Console.WriteLine("Error attempting to get market orders by NPC station");
-                    return new List<MarketOrder>();
+                    Console.WriteLine("Error attempting to get market orders by NPC station. Retrying..");
+                    i--;
+                    continue;
                 }
 
                 totalPages = Int32.Parse(response.Headers.ToList().Find(x => x.Name == "X-Pages").Value.ToString());

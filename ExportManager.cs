@@ -16,6 +16,8 @@ namespace NullMarketManager
         Dictionary<long, MarketOrder> m_dicFilteredOriginOrders;
         Dictionary<long, MarketOrder> m_dicFilteredDestinationOrders;
         List<MarketOrder> m_vExportItems;
+        List<long> m_vCurrentResultIDs;
+        List<long> m_vPreviousResultIDs;
         Dictionary<long, RequestManager.TypeInfo> m_dicItemDictionary;
 
         public ExportManager(string originStation, string destinationStation)
@@ -23,6 +25,8 @@ namespace NullMarketManager
             m_eExportState = ExportState.WAIT_AUTH;
             m_strOriginStation = originStation;
             m_strDestinationStation = destinationStation;
+            m_vCurrentResultIDs = new List<long>();
+            m_vPreviousResultIDs = new List<long>();
         }
 
         public void RunExportManager()
@@ -156,10 +160,25 @@ namespace NullMarketManager
             var finalResults = MarketOrderManager.CalculateProfitWithShippingCost(m_vExportItems, m_dicItemDictionary);
             finalResults.Sort(delegate (MarketOrder c1, MarketOrder c2) { return c1.profit.CompareTo(c2.profit); });
             string header = m_strOriginStation + " -> " + m_strDestinationStation + ": ";
+            m_vCurrentResultIDs.Clear();
             foreach (var item in finalResults)
-            {                
-                Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + (item.profit / 1000000) + "mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+            {
+                m_vCurrentResultIDs.Add(item.type_id);
+                if (m_vPreviousResultIDs.Contains(item.type_id))
+                {
+                    Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + (item.profit / 1000000) + "mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                }
+                else
+                {
+                    string newHeader = "*NEW* " + header;
+                    Console.WriteLine(newHeader + m_dicItemDictionary[item.type_id].name + " - Profit: " + (item.profit / 1000000) + "mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                    m_vPreviousResultIDs.Add(item.type_id);
+                    Console.Beep();
+                }
+
             }
+
+            m_vPreviousResultIDs.RemoveAll(item => !m_vCurrentResultIDs.Contains(item));
 
             m_eExportState = ExportState.WAIT_TIMER;
         }
