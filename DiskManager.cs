@@ -60,5 +60,20 @@ namespace NullMarketManager
 
             return bSuccess;
         }
+
+        public static void SerializeExpiredOrderToDisk(ExpiredOrder order)
+        {            
+            List<ExpiredOrder> expiredOrders = new List<ExpiredOrder>();
+
+            if (File.Exists(AppDomain.CurrentDomain.BaseDirectory + "expiredOrders.json"))
+            {
+                string expiredOrdersJson = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "expiredOrders.json");
+                expiredOrders = JsonConvert.DeserializeObject<List<ExpiredOrder>>(expiredOrdersJson);
+            }
+
+            expiredOrders.Add(order);
+            string jsonString = JsonConvert.SerializeObject(expiredOrders);
+            File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "expiredOrders.json", jsonString);
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace NullMarketManager
                 case "1DQ": return new Tuple<long, long>(1030049082711, -1);
                 case "Amarr": return new Tuple<long, long>(60008494, 10000043);
                 case "Perimeter": return new Tuple<long, long>(1028858195912, -1);
+                case "PF-QHK": return new Tuple<long, long>(60012577, 10000015);                  
                 default: Console.WriteLine("GetLocationIDByName: Invalid Station Name Provided"); return new Tuple<long, long>(-1, -1);
             }
         }

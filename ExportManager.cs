@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Linq;
 
 namespace NullMarketManager
 {
@@ -19,6 +20,7 @@ namespace NullMarketManager
         List<long> m_vCurrentResultIDs;
         List<long> m_vPreviousResultIDs;
         Dictionary<long, RequestManager.TypeInfo> m_dicItemDictionary;
+        List<ExpiredOrder> m_vExpiredOrders;
 
         public ExportManager(string originStation, string destinationStation)
         {
@@ -27,6 +29,7 @@ namespace NullMarketManager
             m_strDestinationStation = destinationStation;
             m_vCurrentResultIDs = new List<long>();
             m_vPreviousResultIDs = new List<long>();
+            m_vExpiredOrders = new List<ExpiredOrder>();
         }
 
         public void RunExportManager()
@@ -62,7 +65,7 @@ namespace NullMarketManager
                 case ExportState.WAIT_TIMER:
                     // wait 15 minutes before running again
                     Console.WriteLine(m_strOriginStation + " -> " + m_strDestinationStation + ": Thread Going To Sleep.");
-                    Thread.Sleep(1000 * 60 * 15);
+                    Thread.Sleep(1000 * 60 * 5);
                     m_eExportState = ExportState.WAIT_AUTH;
                     break;
                 default:
@@ -176,9 +179,35 @@ namespace NullMarketManager
                     Console.Beep();
                 }
 
+                // Generating a new Expired Order (not yet expired) and adding it to our list
+                ExpiredOrder expiredOrder = new ExpiredOrder
+                {
+                    FirstSeen = DateTimeOffset.Now.ToUnixTimeSeconds(),
+                    Item = m_dicItemDictionary[item.type_id].name,
+                    TotalProfit = item.profit,
+                    type_id = item.type_id,
+                    ExportQuantity = item.exportQuantity
+                };
+
+                if (!m_vExpiredOrders.Any(item => item.type_id == expiredOrder.type_id))
+                {
+                    m_vExpiredOrders.Add(expiredOrder);
+                }                
+
             }
 
             m_vPreviousResultIDs.RemoveAll(item => !m_vCurrentResultIDs.Contains(item));
+
+            foreach (var expiredOrder in m_vExpiredOrders)
+            {
+                if (!m_vCurrentResultIDs.Contains(expiredOrder.type_id))
+                {
+                    expiredOrder.LastSeen = DateTimeOffset.Now.ToUnixTimeSeconds();
+                    expiredOrder.SerializeToDisk();
+                }
+            }
+
+            m_vExpiredOrders.RemoveAll(item => !m_vCurrentResultIDs.Contains(item.type_id));
 
             m_eExportState = ExportState.WAIT_TIMER;
         }

@@ -59,6 +59,12 @@ namespace NullMarketManager
                 var response = client.Get(request);
                 var content = response.Content;
 
+                if ( response.IsSuccessful == false)
+                {
+                    i--;
+                    continue;
+                }
+
                 totalPages = Int32.Parse(response.Headers.ToList().Find(x => x.Name == "X-Pages").Value.ToString());
                 
 
