@@ -97,7 +97,6 @@ namespace NullMarketManager
             
             if (result == true)
             {
-                Console.WriteLine(MarketTabs.Items.Count);
 
                 var tab = new TabItem();
                 tab.Header = "Export";
