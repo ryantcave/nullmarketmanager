@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="NullMarketManager.Views.TabViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:NullMarketManager.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="430.902" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="11*"/>
+            <RowDefinition Height="14*"/>
+        </Grid.RowDefinitions>
+        <Rectangle HorizontalAlignment="Center" Height="431" Stroke="Black" VerticalAlignment="Top" Width="800" Fill="White" Grid.RowSpan="2"/>
+
+        <DataGrid Height="178" HorizontalAlignment="Center" Margin="0,132,0,0" x:Name="TestDataGrid" VerticalAlignment="Top" Width="718" CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" IsReadOnly="True" Grid.RowSpan="2" Visibility="Hidden"/>
+        <Label x:Name="OriginLabel" Content="Origin: 1DQ" HorizontalAlignment="Left" Margin="41,57,0,0" VerticalAlignment="Top" Width="77"/>
+        <Label x:Name="DestinationLabel" Content="Destination: Jita" HorizontalAlignment="Left" Margin="123,57,0,0" VerticalAlignment="Top" Width="94"/>
+        <Label x:Name="TabHeader" Content="Tab Type" HorizontalAlignment="Left" Margin="29,10,0,0" VerticalAlignment="Top" Width="188" FontSize="24"/>
+        <Button x:Name="StartStopButton" Content="Start" HorizontalAlignment="Left" Margin="43,95,0,0" VerticalAlignment="Top" Width="73" Click="StartStopButton_Click"/>
+
+    </Grid>
+</UserControl>

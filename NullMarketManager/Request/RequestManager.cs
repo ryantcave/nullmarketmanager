@@ -1,29 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Newtonsoft.Json;
+using NullMarketManager.Models;
 using RestSharp;
-using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
-static class Constants
-{
-    public const string ClientID = "Insert Your Client ID";
-    public const string SecretKey = "Insert Your Secret Key";
-}
-
-namespace NullMarketManager
+namespace NullMarketManager.Request
 {
     class RequestManager
     {
-        public class CharacterInfo
-        {
-            public string CharacterID { get; set; }
-            public string CharacterName { get; set; }
-            public string CharacterOwnerHash { get; set; }
 
-        }
-
-        public static CharacterInfo GetCharacterInfo(AccessManager.AuthInfo authInfo)
+        public static CharacterInfo GetCharacterInfo(AuthInfo authInfo)
         {
             var client = new RestClient("https://login.eveonline.com");
             var request = new RestRequest("oauth/verify", Method.GET);
@@ -40,7 +28,7 @@ namespace NullMarketManager
         }
 
         // Only valid for player-owned stations, must use region endpoint for npc stations
-        public static List<MarketOrder> GetMarketOrdersByPlayerStation(AccessManager.AuthInfo authInfo, long structureID)
+        public static List<MarketOrder> GetMarketOrdersByPlayerStation(AuthInfo authInfo, long structureID)
         {
             List<MarketOrder> returnList = new List<MarketOrder>();
 
@@ -60,7 +48,7 @@ namespace NullMarketManager
                 var content = response.Content;
 
                 totalPages = Int32.Parse(response.Headers.ToList().Find(x => x.Name == "X-Pages").Value.ToString());
-                
+
 
                 returnList.AddRange(JsonConvert.DeserializeObject<List<MarketOrder>>(content));
 
@@ -70,7 +58,7 @@ namespace NullMarketManager
         }
 
         // Must get all orders in the region for public stations, then filter out unwanted results.
-        public static List<MarketOrder> GetMarketOrdersByNPCStation(AccessManager.AuthInfo authInfo, long structureID, long regionID, bool getBuyOrders)
+        public static List<MarketOrder> GetMarketOrdersByNPCStation(AuthInfo authInfo, long structureID, long regionID, bool getBuyOrders)
         {
             List<MarketOrder> returnList = new List<MarketOrder>();
 
@@ -98,7 +86,7 @@ namespace NullMarketManager
                 var response = client.Get(request);
                 var content = response.Content;
 
-                if ( response.IsSuccessful == false)
+                if (response.IsSuccessful == false)
                 {
                     Console.WriteLine("Error attempting to get market orders by NPC station. Retrying..");
                     i--;
@@ -111,9 +99,9 @@ namespace NullMarketManager
 
                 // Only return items that are in the location we want.
 
-                foreach ( var item in pageList)
+                foreach (var item in pageList)
                 {
-                    if ( item.location_id == structureID)
+                    if (item.location_id == structureID)
                     {
                         returnList.Add(item);
                     }
@@ -124,15 +112,7 @@ namespace NullMarketManager
             return returnList;
         }
 
-        public class TypeInfo
-        {
-            public string name { get; set; }
-            public long type_id { get; set; }
-            public float packaged_volume { get; set; }
-
-        }
-
-        public static TypeInfo GetTypeInfo(AccessManager.AuthInfo authInfo, long type_id)
+        public static TypeInfo GetTypeInfo(AuthInfo authInfo, long type_id)
         {
             var client = new RestClient("https://esi.evetech.net");
             var request = new RestRequest("/latest/universe/types/" + type_id);
@@ -158,7 +138,7 @@ namespace NullMarketManager
 
             return JsonConvert.DeserializeObject<TypeInfo>(content);
         }
-    
-    
+
+
     }
 }

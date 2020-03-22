@@ -1,27 +1,69 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Net;
-using System.IO;
-using System.Threading;
-using System.Diagnostics;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using NullMarketManager.IO;
+using NullMarketManager.Models;
 using RestSharp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace NullMarketManager
+namespace NullMarketManager.Access
 {
     class AccessManager
     {
         public static string authCode;
         public static bool accessCodeIsValid;
         public static AuthInfo authInfo;
-        enum AccessState { READ_ACCESS_FROM_DISK, GET_AUTH, GET_ACCESS, RENEW_ACCESS, WAIT_SLEEP }
+        public enum AccessState { READ_ACCESS_FROM_DISK, GET_AUTH, GET_ACCESS, RENEW_ACCESS, WAIT_SLEEP }
         private static AccessState m_eAccessState;
 
         public AccessManager()
         {
             accessCodeIsValid = false;
             m_eAccessState = AccessState.READ_ACCESS_FROM_DISK;
+        }
+
+        public AuthResult CheckAuth()
+        {
+            if (m_eAccessState == AccessState.READ_ACCESS_FROM_DISK)
+            {
+                AccessStateReadDisk();
+            }
+            
+            if (m_eAccessState == AccessState.GET_AUTH)
+            {
+                ReceiveAuthorization(new[] { "http://localhost/oauth-callback/" });
+            }
+
+            if (m_eAccessState == AccessState.GET_ACCESS)
+            {
+                GetAccessToken();
+            }
+
+            if (m_eAccessState == AccessState.RENEW_ACCESS)
+            {
+                RenewAccessToken();
+            }
+
+            if (m_eAccessState == AccessState.WAIT_SLEEP)
+            {
+                int sleepTime = 0;
+                if (authInfo.expiry_time - 60 > DateTimeOffset.Now.ToUnixTimeSeconds())
+                {
+                    sleepTime = (int)((authInfo.expiry_time - DateTimeOffset.Now.ToUnixTimeSeconds() - 60) * 1000);
+                }
+
+                Console.WriteLine("Renewing in " + sleepTime);
+
+                return new AuthResult(AccessState.WAIT_SLEEP,sleepTime);
+
+            }
+
+            return new AuthResult(AccessState.READ_ACCESS_FROM_DISK,-1);
         }
         public void RunAccessManager()
         {
@@ -50,7 +92,7 @@ namespace NullMarketManager
                     if (authInfo.expiry_time - 60 > DateTimeOffset.Now.ToUnixTimeSeconds())
                     {
                         sleepTime = (int)((authInfo.expiry_time - DateTimeOffset.Now.ToUnixTimeSeconds() - 60) * 1000);
-                    }                    
+                    }
                     Thread.Sleep(sleepTime);
                     m_eAccessState = AccessState.RENEW_ACCESS;
                     break;
@@ -78,14 +120,14 @@ namespace NullMarketManager
                 return;
             }
 
-            if ( bSuccess && DateTimeOffset.Now.ToUnixTimeSeconds() < authInfo.expiry_time)
+            if (bSuccess && DateTimeOffset.Now.ToUnixTimeSeconds() < authInfo.expiry_time)
             {
                 accessCodeIsValid = true;
                 m_eAccessState = AccessState.WAIT_SLEEP;
             }
-            
 
-            if ( bSuccess && DateTimeOffset.Now.ToUnixTimeSeconds() >= authInfo.expiry_time)
+
+            if (bSuccess && DateTimeOffset.Now.ToUnixTimeSeconds() >= authInfo.expiry_time)
             {
                 m_eAccessState = AccessState.RENEW_ACCESS;
             }
@@ -132,21 +174,6 @@ namespace NullMarketManager
             listener.Stop();
 
             m_eAccessState = AccessState.GET_ACCESS;
-        }
-
-        public class AuthInfo
-        {
-            public AuthInfo()
-            {
-                access_token = "";
-                expires_in = -1;
-                refresh_token = "";
-                expiry_time = -1;
-            }
-            public string access_token { get; set; }
-            public int expires_in { get; set; }
-            public string refresh_token { get; set; }
-            public long expiry_time { get; set; }
         }
 
         private static void GetAccessToken()

@@ -1,15 +1,17 @@
-﻿using System;
+﻿using NullMarketManager.Models;
+using NullMarketManager.Request;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NullMarketManager
+namespace NullMarketManager.Export
 {
     class MarketOrderManager
     {
         // Isk cost per 1m^3 of volume
         public const double m_nPricePerM3 = 1150;
         // Minimum percentage margin to consider an item
-        public const double m_nDesiredMargin = 0.15;
+        public const double m_nDesiredMargin = 0.10;
         // Percentage above or below the best price to consider for market quantity
         public const double m_nQuantityMargin = 0.02;
         // Minimum total profit of items to display
@@ -21,17 +23,17 @@ namespace NullMarketManager
 
             Dictionary<long, MarketOrder> returnMap = new Dictionary<long, MarketOrder>();
 
-            foreach ( var order in marketOrders)
+            foreach (var order in marketOrders)
             {
 
                 long key = order.type_id;
 
                 // Skip over market orders that aren't the type we selected.
-                if ( order.is_buy_order && !selectBuyOrders)
+                if (order.is_buy_order && !selectBuyOrders)
                 {
                     continue;
                 }
-                else if ( !order.is_buy_order && selectBuyOrders)
+                else if (!order.is_buy_order && selectBuyOrders)
                 {
                     continue;
                 }
@@ -43,7 +45,7 @@ namespace NullMarketManager
                     // If we want buy orders, we want the highest price
                     if (selectBuyOrders)
                     {
-                        if ( order.price > orderInMap.price)
+                        if (order.price > orderInMap.price)
                         {
                             returnMap[key] = order;
                         }
@@ -51,7 +53,7 @@ namespace NullMarketManager
                     // If we want sell orders, we want the lowest price
                     else
                     {
-                        if ( order.price < orderInMap.price)
+                        if (order.price < orderInMap.price)
                         {
                             returnMap[key] = order;
                         }
@@ -97,7 +99,7 @@ namespace NullMarketManager
                         }
                     }
                 }
-                
+
             }
 
             return returnMap;
@@ -110,26 +112,26 @@ namespace NullMarketManager
 
             // Calculate items with a sufficient margin and add them to the list.
 
-            foreach ( var originItem in originOrders)
+            foreach (var originItem in originOrders)
             {
                 long key = originItem.Key;
 
                 // Make sure there are market orders at the desination for the current item.
-                if ( destinationOrders.ContainsKey(key))
+                if (destinationOrders.ContainsKey(key))
                 {
                     var destinationItem = destinationOrders[key];
-                    
+
                     // If the destination price is higher, this is not a valid item for exportation.
                     if (originItem.Value.price > destinationItem.price)
                     {
                         continue;
                     }
 
-                    double margin = 1 - ( originItem.Value.price / destinationItem.price );
+                    double margin = 1 - (originItem.Value.price / destinationItem.price);
 
                     // If we have at least a 15% margin, add the item to the exportation list.
                     if (margin >= m_nDesiredMargin)
-                    {                        
+                    {
                         // Add margin/profit
                         destinationItem.margin = margin;
                         destinationItem.profit = destinationItem.price - originItem.Value.price;
@@ -138,25 +140,25 @@ namespace NullMarketManager
                         destinationItem.sellQuantity = originItem.Value.sellQuantity;
                         marginList.Add(destinationItem);
                     }
-                }             
+                }
 
-            }          
+            }
 
             return marginList;
 
         }
 
-        public static List<MarketOrder> CalculateProfitWithShippingCost(List<MarketOrder> exportItems, Dictionary<long, RequestManager.TypeInfo> itemInfo )
+        public static List<MarketOrder> CalculateProfitWithShippingCost(List<MarketOrder> exportItems, Dictionary<long, TypeInfo> itemInfo)
         {
             var returnList = new List<MarketOrder>();
 
-            foreach ( var item in exportItems)
+            foreach (var item in exportItems)
             {
                 double volume = itemInfo[item.type_id].packaged_volume;
 
                 double profit = (item.profit - (volume * m_nPricePerM3)) * item.exportQuantity;
 
-                if ( profit > m_nMinimumTotalProfit )
+                if (profit > m_nMinimumTotalProfit)
                 {
                     var returnItem = item;
                     item.profit = profit;
@@ -172,11 +174,11 @@ namespace NullMarketManager
         {
             var returnList = new List<MarketOrder>();
 
-            foreach ( var regularOrder in bestOrders )
+            foreach (var regularOrder in bestOrders)
             {
                 var returnOrder = regularOrder;
 
-                if ( returnOrder.buyQuantity > returnOrder.sellQuantity)
+                if (returnOrder.buyQuantity > returnOrder.sellQuantity)
                 {
                     returnOrder.exportQuantity = returnOrder.sellQuantity;
                 }

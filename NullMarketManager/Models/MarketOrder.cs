@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NullMarketManager
+namespace NullMarketManager.Models
 {
     public class MarketOrder
     {
@@ -12,7 +12,7 @@ namespace NullMarketManager
         public bool is_buy_order { get; set; }
         public int type_id { get; set; }
         public int duration { get; set; }
-        public int volume_total { get; set; }        
+        public int volume_total { get; set; }
 
 
         /* Fields Set By Us */

@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using NullMarketManager.Models;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text;
 
-namespace NullMarketManager
+namespace NullMarketManager.IO
 {
     class DiskManager
     {
-        public static void SerializeTypesToDisk(Dictionary<long, RequestManager.TypeInfo> typeInfo)
+        public static void SerializeTypesToDisk(Dictionary<long, TypeInfo> typeInfo)
         {
             StringBuilder builder = new StringBuilder("[");
 
@@ -16,21 +17,22 @@ namespace NullMarketManager
             {
                 builder.Append(JsonConvert.SerializeObject(type.Value));
                 builder.Append(",");
-                
+
 
             }
             builder[builder.Length - 1] = ']';
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "typeInfo.json", builder.ToString());
         }
 
-        public static Dictionary<long, RequestManager.TypeInfo> DeserializeTypesFromDisk()
+        public static Dictionary<long, TypeInfo> DeserializeTypesFromDisk()
         {
-            var returnMap = new Dictionary<long, RequestManager.TypeInfo>();
-            var typeList = new List<RequestManager.TypeInfo>();
+            var returnMap = new Dictionary<long, TypeInfo>();
+            var typeList = new List<TypeInfo>();
 
-            if ( File.Exists(AppDomain.CurrentDomain.BaseDirectory + "typeInfo.json")){
+            if (File.Exists(AppDomain.CurrentDomain.BaseDirectory + "typeInfo.json"))
+            {
                 var input = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "typeInfo.json");
-                typeList = JsonConvert.DeserializeObject<List<RequestManager.TypeInfo>>(input);
+                typeList = JsonConvert.DeserializeObject<List<TypeInfo>>(input);
             }
 
             foreach (var item in typeList)
@@ -42,19 +44,19 @@ namespace NullMarketManager
 
         }
 
-        public static void SerializeAuthInfoToDisk(AccessManager.AuthInfo authInfo)
+        public static void SerializeAuthInfoToDisk(AuthInfo authInfo)
         {
             string jsonString = JsonConvert.SerializeObject(authInfo);
             File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json", jsonString);
         }
 
-        public static bool DeserializeAuthInfoFromDisk(ref AccessManager.AuthInfo authInfo)
+        public static bool DeserializeAuthInfoFromDisk(ref AuthInfo authInfo)
         {
             bool bSuccess = false;
-            if ( File.Exists(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json"))
+            if (File.Exists(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json"))
             {
                 var input = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "authInfo.json");
-                authInfo = JsonConvert.DeserializeObject<AccessManager.AuthInfo>(input);
+                authInfo = JsonConvert.DeserializeObject<AuthInfo>(input);
                 bSuccess = true;
             }
 

@@ -1,13 +1,17 @@
-﻿using System;
+﻿using NullMarketManager.Access;
+using NullMarketManager.IO;
+using NullMarketManager.Models;
+using NullMarketManager.Request;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace NullMarketManager
+namespace NullMarketManager.Export
 {
-    class ExportManager
+    class ExportManager : IExportManager
     {
-        enum ExportState { WAIT_AUTH, GET_ORDERS, FILTER_ORDERS, CALCULATE_EXPORTS, GET_TYPEINFO, PRINT_RESULTS, WAIT_TIMER}
+        enum ExportState { WAIT_AUTH, GET_ORDERS, FILTER_ORDERS, CALCULATE_EXPORTS, GET_TYPEINFO, PRINT_RESULTS, WAIT_TIMER }
         ExportState m_eExportState;
         string m_strOriginStation;
         string m_strDestinationStation;
@@ -18,7 +22,8 @@ namespace NullMarketManager
         List<MarketOrder> m_vExportItems;
         List<long> m_vCurrentResultIDs;
         List<long> m_vPreviousResultIDs;
-        Dictionary<long, RequestManager.TypeInfo> m_dicItemDictionary;
+        Dictionary<long, TypeInfo> m_dicItemDictionary;
+        List<OrderResult> orderResults;
 
         public ExportManager(string originStation, string destinationStation)
         {
@@ -27,14 +32,60 @@ namespace NullMarketManager
             m_strDestinationStation = destinationStation;
             m_vCurrentResultIDs = new List<long>();
             m_vPreviousResultIDs = new List<long>();
+            orderResults = new List<OrderResult>();
         }
 
         public void RunExportManager()
-        {            
+        {
             while (true)
             {
                 ExportManagerStateMachineDoWork();
-            }            
+            }
+        }
+
+        public ExportResult CalculateExportResults()
+        {
+
+            if (m_eExportState == ExportState.WAIT_AUTH)
+            {
+                ExportStateWaitAuth();
+            }
+
+            if (m_eExportState == ExportState.GET_ORDERS)
+            {
+                ExportStateGetOrders();
+            }
+
+            if (m_eExportState == ExportState.FILTER_ORDERS)
+            {
+                ExportStateFilterOrders();
+            }
+
+            if (m_eExportState == ExportState.CALCULATE_EXPORTS)
+            {
+                ExportStateCalculateExports();
+            }
+
+            if (m_eExportState == ExportState.GET_TYPEINFO)
+            {
+                ExportStateGetTypeInfo();
+            }
+
+            if (m_eExportState == ExportState.PRINT_RESULTS)
+            {
+                ExportStatePrintResults();
+            }
+
+            if (m_eExportState == ExportState.WAIT_TIMER)
+            {
+                int sleepTime = 1000 * 60 * 15;
+
+                Console.WriteLine("Renewing in " + sleepTime);
+
+                return new ExportResult(orderResults, true);
+            }
+
+            return new ExportResult(null,false);
         }
 
         private void ExportManagerStateMachineDoWork()
@@ -73,7 +124,7 @@ namespace NullMarketManager
 
         private void ExportStateWaitAuth()
         {
-            while ( AccessManager.accessCodeIsValid == false)
+            while (AccessManager.accessCodeIsValid == false)
             {
                 Thread.Sleep(2000);
             }
@@ -88,7 +139,7 @@ namespace NullMarketManager
 
             // Get origin station orders
             // If the region id is -1 we know it's a player station
-            if ( originStationData.Item2 == -1)
+            if (originStationData.Item2 == -1)
             {
                 m_vOriginStationOrders = RequestManager.GetMarketOrdersByPlayerStation(AccessManager.authInfo, originStationData.Item1);
             }
@@ -99,7 +150,7 @@ namespace NullMarketManager
 
             // Get destination station orders
 
-            if ( destinationStationData.Item2 == -1)
+            if (destinationStationData.Item2 == -1)
             {
                 m_vDestinationStationOrders = RequestManager.GetMarketOrdersByPlayerStation(AccessManager.authInfo, destinationStationData.Item1);
             }
@@ -123,7 +174,7 @@ namespace NullMarketManager
             m_vOriginStationOrders.Clear();
             m_vDestinationStationOrders.Clear();
         }
-    
+
         private void ExportStateCalculateExports()
         {
             var exportItemsUnadjusted = MarketOrderManager.CalculateExportItems(m_dicFilteredOriginOrders, m_dicFilteredDestinationOrders);
@@ -154,28 +205,44 @@ namespace NullMarketManager
 
             m_eExportState = ExportState.PRINT_RESULTS;
         }
-    
+
         private void ExportStatePrintResults()
         {
             var finalResults = MarketOrderManager.CalculateProfitWithShippingCost(m_vExportItems, m_dicItemDictionary);
             finalResults.Sort(delegate (MarketOrder c1, MarketOrder c2) { return c1.profit.CompareTo(c2.profit); });
             string header = m_strOriginStation + " -> " + m_strDestinationStation + ": ";
             m_vCurrentResultIDs.Clear();
-            foreach (var item in finalResults)
-            {
-                m_vCurrentResultIDs.Add(item.type_id);
-                if (m_vPreviousResultIDs.Contains(item.type_id))
-                {
-                    Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000,4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
-                }
-                else
-                {
-                    string newHeader = "*NEW* " + header;
-                    Console.WriteLine(newHeader + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000,4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
-                    m_vPreviousResultIDs.Add(item.type_id);
-                    Console.Beep();
-                }
 
+            if (finalResults.Count > 0)
+            {
+                orderResults.Clear();
+
+                foreach (var item in finalResults)
+                {
+                    OrderResult orderResult = new OrderResult();
+                    orderResult.Name = m_dicItemDictionary[item.type_id].name;
+                    orderResult.Profit = Math.Round(item.profit / 1000000, 4);
+                    orderResult.Volume = m_dicItemDictionary[item.type_id].packaged_volume;
+                    orderResult.ExportQuantity = item.exportQuantity;
+                    orderResults.Add(orderResult);
+
+                    m_vCurrentResultIDs.Add(item.type_id);
+                    if (m_vPreviousResultIDs.Contains(item.type_id))
+                    {
+                        Console.WriteLine(header + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000, 4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                    }
+                    else
+                    {
+                        string newHeader = "*NEW* " + header;
+                        Console.WriteLine(newHeader + m_dicItemDictionary[item.type_id].name + " - Profit: " + Math.Round(item.profit / 1000000, 4) + " mil - Item Volume: " + m_dicItemDictionary[item.type_id].packaged_volume + " - Export Quantity: " + item.exportQuantity);
+                        m_vPreviousResultIDs.Add(item.type_id);
+                        Console.Beep();
+                    }
+
+                }
+            } else
+            {
+                Console.WriteLine("No results.");
             }
 
             m_vPreviousResultIDs.RemoveAll(item => !m_vCurrentResultIDs.Contains(item));
