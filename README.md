@@ -17,7 +17,7 @@ If you are a developer, you will need to register the application in the EVE Dev
 
 ### Required Setup 
 
-Create `App.config` with the below contents and your API keys filled in:
+Create `App.config` within the NullMarketManager project directory with the below contents and your API keys filled in:
 
 ```
 <?xml version="1.0" encoding="utf-8" ?>
