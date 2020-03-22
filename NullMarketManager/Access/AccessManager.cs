@@ -4,6 +4,7 @@ using NullMarketManager.Models;
 using RestSharp;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -188,7 +189,7 @@ namespace NullMarketManager.Access
                 code = authCode
             };
 
-            var encodeBytes = System.Text.Encoding.UTF8.GetBytes(Constants.ClientID + ":" + Constants.SecretKey);
+            var encodeBytes = System.Text.Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["ClientID"] + ":" + ConfigurationManager.AppSettings["SecretKey"]);
             string header = "Basic " + System.Convert.ToBase64String(encodeBytes);
 
             string json_body = JsonConvert.SerializeObject(body);
@@ -218,7 +219,7 @@ namespace NullMarketManager.Access
                 refresh_token = authInfo.refresh_token
             };
 
-            var encodeBytes = System.Text.Encoding.UTF8.GetBytes(Constants.ClientID + ":" + Constants.SecretKey);
+            var encodeBytes = System.Text.Encoding.UTF8.GetBytes(ConfigurationManager.AppSettings["ClientID"] + ":" + ConfigurationManager.AppSettings["SecretKey"]);
             string header = "Basic " + System.Convert.ToBase64String(encodeBytes);
 
             string json_body = JsonConvert.SerializeObject(body);

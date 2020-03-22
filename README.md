@@ -15,6 +15,20 @@ This is a personal project and designed for my own usecases.
 If you are not a developer, you can't. The application is not currently designed for the endusers, as opening it up in this way would cut into my own profits!
 If you are a developer, you will need to register the application in the EVE Developers portal and allow it access to all user scopes. Once this is done, update your Client & Secret ID in the code, and update the Location IDs in the constants class to match your desired origin and destinations.
 
+### Required Setup 
+
+Create `App.config` with the below contents and your API keys filled in:
+
+```
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <appSettings>
+    <add key="ClientID" value="{ClientID Goes Here}" />
+    <add key="SecretKey" value="{SecretKey Goes Here}" />
+  </appSettings>
+</configuration>
+```
+
 ### Will the market manager ever have <idea>?
 In a perfect world the manager would have a UI and other market features unrelated to export routes (e.g. notifications when buy orders are outbid). However, as it's not to my advantage to distribute the application, it remains in a state requiring it to be run in Visual Studio.
 

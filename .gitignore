@@ -1,4 +1,4 @@
 .vs
 bin
 obj
-Constants.cs
+App.config
