@@ -78,9 +78,6 @@ namespace NullMarketManager.Export
 
             if (m_eExportState == ExportState.WAIT_TIMER)
             {
-                int sleepTime = 1000 * 60 * 15;
-
-                Console.WriteLine("Renewing in " + sleepTime);
 
                 return new ExportResult(orderResults, true);
             }
